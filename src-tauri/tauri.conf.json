@@ -1,0 +1,86 @@
+{
+  "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
+  "productName": "My TODOs Widget",
+  "version": "0.2.2",
+  "identifier": "com.zhang.todo.widget",
+  "build": {
+    "frontendDist": "../dist",
+    "devUrl": "http://localhost:1420",
+    "beforeDevCommand": "npm run dev -- --host 0.0.0.0 --port 1420",
+    "beforeBuildCommand": "npm run build"
+  },
+  "app": {
+    "windows": [
+      {
+        "label": "widget",
+        "title": "待办小组件",
+        "width": 460,
+        "height": 680,
+        "minWidth": 280,
+        "minHeight": 56,
+        "resizable": true,
+        "fullscreen": false,
+        "visible": false,
+        "transparent": true,
+        "decorations": false,
+        "skipTaskbar": true,
+        "shadow": false,
+        "alwaysOnTop": false,
+        "preventOverflow": true
+      },
+      {
+        "label": "settings",
+        "title": "偏好设置",
+        "width": 940,
+        "height": 720,
+        "minWidth": 820,
+        "minHeight": 560,
+        "resizable": true,
+        "fullscreen": false,
+        "visible": false,
+        "create": false,
+        "decorations": false,
+        "skipTaskbar": false,
+        "shadow": true,
+        "center": true,
+        "preventOverflow": true
+      },
+      {
+        "label": "manage",
+        "title": "代办管理",
+        "width": 960,
+        "height": 720,
+        "minWidth": 820,
+        "minHeight": 560,
+        "resizable": true,
+        "fullscreen": false,
+        "visible": false,
+        "create": false,
+        "decorations": false,
+        "skipTaskbar": false,
+        "shadow": true,
+        "center": true,
+        "preventOverflow": true
+      }
+    ],
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "windows": {
+      "wix": {
+        "upgradeCode": "92ce66c0-fabb-5b21-bdd1-91673236baf0"
+      }
+    },
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ]
+  }
+}
