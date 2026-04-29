@@ -1,73 +1,426 @@
-# React + TypeScript + Vite
+<p align="center">
+  <img src="src-tauri/icons/icon.png" width="128" height="128" alt="My TODOs Widget Icon" />
+</p>
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+<h1 align="center">My TODOs Widget</h1>
 
-Currently, two official plugins are available:
+<p align="center">
+  <strong>一款精致的桌面待办小组件</strong><br/>
+  轻量 · 常驻桌面 · 毛玻璃质感 · 支持循环任务
+</p>
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+<p align="center">
+  <img src="https://img.shields.io/badge/version-0.2.2-blue?style=flat-square" alt="version" />
+  <img src="https://img.shields.io/badge/Tauri-v2-orange?style=flat-square&logo=tauri" alt="tauri" />
+  <img src="https://img.shields.io/badge/React-18-61DAFB?style=flat-square&logo=react" alt="react" />
+  <img src="https://img.shields.io/badge/TypeScript-6.0-3178C6?style=flat-square&logo=typescript" alt="typescript" />
+  <img src="https://img.shields.io/badge/Rust-2024-000000?style=flat-square&logo=rust" alt="rust" />
+  <img src="https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey?style=flat-square" alt="platform" />
+</p>
 
-## React Compiler
+---
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## 目录
 
-## Expanding the ESLint configuration
+- [项目简介](#项目简介)
+- [核心功能](#核心功能)
+- [技术架构](#技术架构)
+- [项目结构](#项目结构)
+- [快速开始](#快速开始)
+- [使用指南](#使用指南)
+- [设计细节](#设计细节)
+- [构建与发布](#构建与发布)
+- [许可证](#许可证)
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+---
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+## 项目简介
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+**My TODOs Widget** 是一款基于 Tauri v2 构建的桌面待办事项小组件应用。它常驻在你的桌面上，采用毛玻璃（Glassmorphism）设计语言，提供美观、轻量且功能丰富的待办管理体验。
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+不同于传统的全屏待办应用，My TODOs Widget 以小组件形态直接悬浮在桌面上，让你随时可以看到待办事项，无需切换窗口。同时还提供了完整的管理界面用于批量操作、数据导入导出和回收站管理。
+
+### 亮点特性
+
+- **桌面小组件形态** — 无边框透明窗口，常驻桌面不遮挡工作
+- **毛玻璃 UI** — OKLCH 色彩空间 + 可调透明度 + 背景模糊
+- **循环任务引擎** — 每日 / 工作日 / 周末 / 每周指定日 / 每 N 天自动重置
+- **多窗口架构** — 小组件 + 管理面板 + 设置面板，各司其职
+- **系统托盘常驻** — 右键菜单快速操作，左键一键切换显示
+- **原生体验** — 自启动、窗口穿透、置顶、位置记忆，深度集成系统
+
+---
+
+## 核心功能
+
+### 待办管理
+
+| 功能 | 说明 |
+|------|------|
+| 创建待办 | 支持多行文本，可选卡片颜色（6 种）和文字颜色（7 种） |
+| 编辑待办 | 双击或菜单进入编辑模式，完整修改内容、颜色和循环规则 |
+| 完成/取消完成 | 圆形复选框切换，完成后文字显示删除线效果 |
+| 拖拽排序 | 基于 dnd-kit 的流畅拖拽，支持小组件和管理面板双视图排序 |
+| 软删除与回收站 | 删除的待办进入回收站，可单独恢复或批量恢复 |
+| 自动清理回收站 | 超过保留天数（7–365 天可配置）的项目在启动时自动清除 |
+| 搜索与排序 | 按内容搜索，支持按创建时间、更新时间、字母排序 |
+| 隐藏已完成 | 一键切换是否在列表中显示已完成项 |
+
+### 循环任务
+
+内置智能循环任务引擎，支持 5 种频率模式：
+
+| 频率 | 说明 |
+|------|------|
+| 每日 (Daily) | 每天自动重置为未完成 |
+| 工作日 (Weekdays) | 仅周一至周五重置 |
+| 周末 (Weekends) | 仅周六和周日重置 |
+| 每周 (Weekly) | 选择具体的星期几（可多选）重置 |
+| 每 N 天 (Every N Days) | 自定义间隔（1–30 天）循环重置 |
+
+循环任务会根据浏览器时区自动同步到 Rust 后端，确保跨时区场景下的准确调度。完成的循环待办在下一个触发日自动恢复为未完成状态。
+
+### 数据管理
+
+| 功能 | 说明 |
+|------|------|
+| 本地持久化 | 数据以 JSON 格式存储在系统应用数据目录（`app-state.json`） |
+| 导出数据 | 通过系统原生保存对话框导出全部数据（待办 + 偏好设置 + 回收站） |
+| 导入数据 | 通过系统原生打开对话框导入 JSON，支持 **合并模式**（按 ID 智能合并，保留较新版本）和 **替换模式**（完全覆盖） |
+| 版本化格式 | 导出文件包含版本号字段，便于未来兼容升级 |
+
+### 桌面集成
+
+| 功能 | 说明 |
+|------|------|
+| 系统托盘 | 右键菜单含 13+ 操作项（含窗口尺寸、不透明度子菜单），左键点击切换小组件显示 |
+| 窗口置顶 | 始终在其他窗口上方显示，可随时切换 |
+| 窗口穿透 | Windows 独有功能，开启后鼠标事件穿透小组件直达桌面（通过 Win32 API `WS_EX_TRANSPARENT` 实现） |
+| 开机自启 | 基于 `tauri-plugin-autostart` 注册系统自启动，支持 `--autostart` 启动标记 |
+| 启动策略 | 三种启动可见性策略：记住上次状态 / 始终显示 / 最小化到托盘 |
+| 关闭行为 | 可选关闭到托盘继续常驻，或直接退出程序 |
+| 位置记忆 | 窗口位置和大小自动保存，下次启动恢复到上次位置 |
+| 智能定位 | 首次启动自动定位到桌面右下角（距屏幕边缘 28px） |
+
+### 小组件视图
+
+**展开模式**：
+- 标题栏含拖拽区域和操作按钮（管理、设置、新建、折叠、隐藏到托盘）
+- 概览卡片显示 SVG 进度环、待处理数量、总数和已完成统计
+- 可折叠的快速新建面板
+- 已完成项隐藏时显示提示横幅
+- 滚动列表支持拖拽排序和动画进出
+- 空状态插画和快捷新建按钮
+
+**折叠模式**：
+- 单行紧凑条（默认 320x64），显示进度环、待处理数量和下一条待办预览
+- 双击展开，支持快速新建按钮
+- 整个栏位可拖拽移动
+
+### 管理面板
+
+完整的待办管理界面，侧边栏 + 内容区双栏布局，包含 5 个标签页：
+
+| 标签页 | 功能 |
+|--------|------|
+| 全部 | 新建、搜索、排序、隐藏已完成、快速导出、拖拽排序 |
+| 按日期 | 按创建日期分组显示，包含中文日期格式和星期标注 |
+| 已完成 | 仅显示已完成的待办列表 |
+| 回收站 | 显示已删除项及删除时间，支持单独/批量恢复和彻底清除 |
+| 导入导出 | JSON 导出/导入、合并/替换策略选择、回收站保留天数配置 |
+
+侧边栏还显示统计概览：活跃数、待处理数、已完成数、回收站数量、保留天数。
+
+### 设置面板
+
+精细的偏好设置界面，同样采用侧边栏 + 内容区布局：
+
+| 标签页 | 设置项 |
+|--------|--------|
+| 外观 | 主题模式（跟随系统/亮色/暗色）、表面透明度滑块（55%–100%）、小组件宽高调节、3 种尺寸预设 |
+| 桌面行为 | 始终置顶、窗口穿透（仅 Windows）、隐藏已完成 |
+| 启动与常驻 | 开机自启、关闭行为（托盘/退出）、启动可见性策略 |
+| 快捷键 | 快捷键参考列表 |
+| 关于 | 应用信息、版本号、技术栈、当前主题 |
+
+### 快捷键
+
+| 快捷键 | 操作 |
+|--------|------|
+| `Enter` | 添加待办 |
+| `Shift + Enter` | 换行 |
+| `Esc` | 取消编辑 / 关闭面板 |
+| 双击待办 | 进入编辑模式 |
+| 左键托盘图标 | 切换小组件显示 |
+| 右键托盘图标 | 打开快捷菜单 |
+
+---
+
+## 技术架构
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                      Frontend (React 18)                │
+│  ┌─────────┐  ┌───────────┐  ┌──────────────────────┐  │
+│  │ Widget  │  │  Manage   │  │      Settings        │  │
+│  │  View   │  │   View    │  │       View           │  │
+│  └────┬────┘  └─────┬─────┘  └──────────┬───────────┘  │
+│       │             │                    │              │
+│       └─────────────┼────────────────────┘              │
+│                     │                                   │
+│              ┌──────┴──────┐                            │
+│              │ Zustand Store│                           │
+│              └──────┬──────┘                            │
+│                     │                                   │
+│              ┌──────┴──────┐                            │
+│              │  Tauri IPC  │                            │
+│              │   Bridge    │                            │
+│              └──────┬──────┘                            │
+└─────────────────────┼───────────────────────────────────┘
+                      │  invoke() / events
+┌─────────────────────┼───────────────────────────────────┐
+│                     │       Backend (Rust / Tauri v2)    │
+│              ┌──────┴──────┐                            │
+│              │  18 Tauri   │                            │
+│              │  Commands   │                            │
+│              └──────┬──────┘                            │
+│    ┌────────────────┼────────────────┐                  │
+│    │                │                │                  │
+│ ┌──┴───┐    ┌──────┴──────┐   ┌─────┴─────┐           │
+│ │ Tray │    │   State     │   │  Storage  │           │
+│ │System│    │  Management │   │  (JSON)   │           │
+│ └──────┘    └──────┬──────┘   └───────────┘           │
+│                    │                                    │
+│    ┌───────────────┼───────────────┐                   │
+│    │               │               │                   │
+│ ┌──┴───┐   ┌──────┴──────┐  ┌────┴────┐              │
+│ │Window│   │  Recurring  │  │Win32 API│              │
+│ │Manage│   │   Engine    │  │(Windows)│              │
+│ └──────┘   └─────────────┘  └─────────┘              │
+└─────────────────────────────────────────────────────────┘
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+### 技术栈
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+| 层级 | 技术 | 说明 |
+|------|------|------|
+| 桌面框架 | Tauri v2.10 | Rust 后端 + WebView 前端，体积小、性能高 |
+| 前端框架 | React 18 | UI 组件库，StrictMode 开发 |
+| 语言 | TypeScript 6.0 | 前端类型安全 |
+| 构建工具 | Vite 7 + SWC | 极速 HMR 和构建 |
+| 状态管理 | Zustand 5 | 轻量级全局状态 |
+| 拖拽排序 | dnd-kit | 无障碍拖拽组件库 |
+| 动画 | Framer Motion | 声明式动画（进出场、布局、手势） |
+| 图标 | Lucide React | 精美开源矢量图标 |
+| 后端语言 | Rust (2024 Edition) | 高性能系统编程 |
+| 序列化 | Serde + serde_json | Rust JSON 序列化/反序列化 |
+| Win32 集成 | windows 0.61 crate | 窗口穿透、置顶控制等原生 API |
+| 自启动 | tauri-plugin-autostart | 跨平台开机自启 |
+| 对话框 | tauri-plugin-dialog | 原生文件选择/保存对话框 |
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+### 多窗口架构
+
+应用采用三窗口设计，共享同一个 React 入口，运行时通过窗口标签路由到不同视图：
+
+| 窗口 | 标签 | 尺寸 | 特性 |
+|------|------|------|------|
+| 小组件 | `widget` | 460x680（可调） | 透明无边框、跳过任务栏、可穿透、可折叠 |
+| 设置 | `settings` | 940x720 | 按需创建、自定义标题栏、居中显示 |
+| 管理 | `manage` | 960x720 | 按需创建、自定义标题栏、居中显示 |
+
+---
+
+## 项目结构
+
 ```
+tauri-todolist/
+├── src/                          # 前端源码
+│   ├── main.tsx                  # React 入口
+│   ├── App.tsx                   # 应用外壳：窗口路由、主题、事件监听、Toast
+│   ├── index.css                 # 全局样式（2000+ 行设计系统）
+│   ├── app/
+│   │   ├── types.ts              # TypeScript 类型定义
+│   │   ├── store.ts              # Zustand 全局状态
+│   │   ├── tauri.ts              # Tauri IPC 桥接层（18 个命令封装）
+│   │   └── todoColors.ts         # 卡片/文字颜色调色板定义
+│   ├── components/
+│   │   ├── WidgetView.tsx        # 桌面小组件视图（展开/折叠双模式）
+│   │   ├── ManageView.tsx        # 管理面板（5 标签页 + 侧边栏）
+│   │   ├── SettingsView.tsx      # 设置面板（5 标签页）
+│   │   ├── TodoCard.tsx          # 待办卡片（显示/编辑/拖拽/菜单）
+│   │   ├── TodoComposer.tsx      # 新建待办表单（颜色选择 + 循环规则）
+│   │   └── RecurrencePicker.tsx  # 循环规则编辑器
+│   └── assets/                   # 静态资源
+├── src-tauri/                    # Rust 后端
+│   ├── src/
+│   │   ├── main.rs               # 入口（隐藏 Windows 控制台）
+│   │   ├── lib.rs                # 核心逻辑（状态管理、窗口控制、系统托盘、命令）
+│   │   ├── models.rs             # 数据模型 + 业务逻辑（normalize、purge、recurring）
+│   │   ├── storage.rs            # 文件读写（持久化、导入导出）
+│   │   └── windows_ext.rs        # Windows 原生扩展（穿透、置顶）
+│   ├── tauri.conf.json           # Tauri 应用配置
+│   ├── capabilities/
+│   │   └── desktop.json          # 权限声明
+│   ├── icons/                    # 应用图标（所有平台）
+│   ├── Cargo.toml                # Rust 依赖
+│   └── Cargo.lock                # Rust 依赖锁定
+├── public/                       # 公共静态资源
+├── index.html                    # HTML 入口
+├── package.json                  # 前端依赖和脚本
+├── vite.config.ts                # Vite 配置
+├── tsconfig.json                 # TypeScript 配置
+└── eslint.config.js              # ESLint 配置
+```
+
+---
+
+## 快速开始
+
+### 环境要求
+
+- **Node.js** >= 18
+- **npm** >= 9
+- **Rust** (stable toolchain)
+- **Tauri v2 CLI** 系统依赖：参考 [Tauri Prerequisites](https://v2.tauri.app/start/prerequisites/)
+
+### 安装与运行
+
+```bash
+# 1. 克隆仓库
+git clone https://github.com/shiyun0001/todolist.git
+cd todolist
+
+# 2. 安装前端依赖
+npm install
+
+# 3. 开发模式运行（首次启动会编译 Rust 后端，耗时较长）
+npm run tauri:dev
+
+# 4. 生产构建
+npm run tauri:build
+```
+
+### 可用脚本
+
+| 命令 | 说明 |
+|------|------|
+| `npm run dev` | 启动 Vite 前端开发服务器 |
+| `npm run build` | TypeScript 检查 + Vite 生产构建 |
+| `npm run tauri:dev` | Tauri 开发模式（前后端联调） |
+| `npm run tauri:build` | Tauri 生产构建（生成安装包） |
+| `npm run check` | TypeScript 类型检查 |
+| `npm run lint` | ESLint 代码检查 |
+
+---
+
+## 使用指南
+
+### 基本操作
+
+1. **启动应用** — 小组件自动出现在桌面右下角，系统托盘中会出现应用图标
+2. **新建待办** — 点击小组件标题栏的 `+` 按钮，或在管理面板中点击「新建」
+3. **完成待办** — 点击待办左侧的圆形复选框
+4. **编辑待办** — 双击待办卡片，或点击更多菜单选择「编辑」
+5. **删除待办** — 点击更多菜单选择「删除」，待办将移入回收站
+6. **拖拽排序** — 按住待办左侧的抓手图标上下拖动
+
+### 系统托盘
+
+右键点击托盘图标可以快速操作：
+
+- 显示/隐藏小组件
+- 快速新建待办
+- 切换置顶/穿透/隐藏已完成
+- 快速调整窗口尺寸（紧凑/标准/舒展）
+- 快速调整不透明度（100%/92%/84%/76%）
+- 打开管理面板/偏好设置
+- 退出程序
+
+### 设置循环任务
+
+在新建或编辑待办时，点击「设为定时重复」开关：
+
+1. 选择频率：每日 / 工作日 / 周末 / 每周 / 每 N 天
+2. 如果选择「每周」，点选具体的星期几（可多选）
+3. 如果选择「每 N 天」，设置间隔天数（1–30）
+4. 完成待办后，到达下一个触发日时会自动重置为未完成
+
+### 数据导入/导出
+
+在管理面板的「导入导出」标签页中：
+
+- **导出**：点击「导出数据」，选择保存位置，生成包含所有待办和设置的 JSON 文件
+- **导入**：点击「导入数据」，选择 JSON 文件，可选择合并模式或替换模式
+  - **合并模式**：按 ID 匹配，保留更新时间较新的版本
+  - **替换模式**：完全覆盖当前数据
+
+---
+
+## 设计细节
+
+### 色彩系统
+
+采用 **OKLCH 色彩空间** 实现感知均匀的色彩变化，提供 6 种卡片颜色和 7 种文字颜色：
+
+**卡片颜色**：素白 · 雾蓝 · 青芽 · 晨金 · 珊瑚 · 暮丁香
+
+**文字颜色**：默认 · 灰淡 · 蓝 · 绿 · 琥珀 · 玫瑰 · 紫
+
+### 毛玻璃效果
+
+- 可调透明度范围 55%–100%，附带 4 个快捷预设
+- 背景模糊强度随透明度自动计算（透明度越低，模糊越强）
+- 使用 `backdrop-filter: blur() saturate()` 和 `color-mix()` 实现
+
+### 动画系统
+
+- 基于 Framer Motion 的声明式动画
+- 待办卡片入场/退场动画、布局过渡动画
+- 面板切换、Toast 通知、菜单弹出等微交互
+- 三级动画速度：快速 120ms / 基础 180ms / 慢速 260ms
+- 完整的 `prefers-reduced-motion` 无障碍支持
+
+### 无障碍
+
+- ARIA 属性：`role="switch"` / `role="radio"` / `role="radiogroup"` / `role="menu"` 等
+- `aria-checked`、`aria-pressed`、`aria-label` 语义标注
+- `focus-visible` 键盘焦点样式
+- 尊重系统动画偏好设置
+
+### 响应式
+
+- 设置面板在 720px 以下自动折叠侧边栏
+- 管理面板工具栏在 820px 以下自动换行
+- 自定义滚动条（WebKit 彩色滚动条 + Firefox 细滚动条）
+
+---
+
+## 构建与发布
+
+### 生产构建
+
+```bash
+npm run tauri:build
+```
+
+构建产物位于 `src-tauri/target/release/bundle/`，包括：
+
+- **Windows**: `.msi` 安装包（WiX 打包）和 `.exe`
+- **macOS**: `.dmg` 和 `.app`
+- **Linux**: `.deb` 和 `.AppImage`
+
+### 安装包
+
+项目已有预构建的 Release Artifacts（`.zip` 格式），可直接解压使用。
+
+---
+
+## 许可证
+
+MIT License
+
+---
+
+<p align="center">
+  用 Tauri + React + Rust 构建，以匠心打造的桌面待办体验。
+</p>
